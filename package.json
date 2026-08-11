@@ -1,0 +1,35 @@
+{
+  "name": "@minstandard/agent",
+  "version": "0.1.0",
+  "description": "MinStandard enterprise telemetry and evidence-receipt CLI",
+  "type": "module",
+  "bin": {
+    "minstandard-agent": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "pack:check": "pnpm pack --pack-destination ../../artifacts"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "license": "UNLICENSED"
+}
