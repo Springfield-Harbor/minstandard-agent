@@ -1,0 +1,49 @@
+name: Publish to npm
+
+# Manual only — npm publish is public and effectively irreversible (versions
+# can be deprecated but not deleted after ~72h). Never trigger this on push/tag
+# automatically. Requires the "npm-publish" environment's required reviewer(s).
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_version:
+        description: 'Version in package.json you are confirming you want to publish (must match exactly)'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write # for npm provenance; no AWS OIDC in this repo
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify confirmed version matches package.json
+        run: |
+          actual="$(node -p "require('./package.json').version")"
+          if [ "${{ inputs.confirm_version }}" != "$actual" ]; then
+            echo "Confirmed version (${{ inputs.confirm_version }}) does not match package.json ($actual)." >&2
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run test
+
+      - name: Publish
+        run: pnpm publish --no-git-checks --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
